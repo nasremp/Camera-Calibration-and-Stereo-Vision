@@ -37,13 +37,30 @@ def calculate_projection_matrix(Points_2D, Points_3D):
     ##################
     # Your code here #
     ##################
-
+    matrixA = []
+    matrixB = []
+    rows, cols = Points_2D.shape
     # This M matrix came from a call to rand(3,4). It leads to a high residual.
     # Your total residual should be less than 1.
-    print('Randomly setting matrix entries as a placeholder')
-    M = np.array([[0.1768, 0.7018, 0.7948, 0.4613],
-                  [0.6750, 0.3152, 0.1136, 0.0480],
-                  [0.1020, 0.1725, 0.7244, 0.9932]])
+    #print('Randomly setting matrix entries as a placeholder')
+    #M = np.array([[0.1768, 0.7018, 0.7948, 0.4613],
+                  #[0.6750, 0.3152, 0.1136, 0.0480],
+                  #[0.1020, 0.1725, 0.7244, 0.9932]])
+    
+    
+    for x in range(0, rows): #iterate at each point across the 20 row
+        matrixA.append([Points_3D[x, 0] ,Points_3D[x, 1], Points_3D[x, 2], 1, 0, 0, 0, 0 , -Points_2D[x, 0]*Points_3D[x, 0], -Points_2D[x, 0]*Points_3D[x, 1], -Points_2D[x, 0]*Points_3D[x, 2]])
+        matrixA.append([0, 0, 0, 0, Points_3D[x, 0], Points_3D[x, 1], Points_3D[x, 2], 1, -Points_2D[x, 1]*Points_3D[x, 0], -Points_2D[x, 1]*Points_3D[x, 1], -Points_2D[x, 1]*Points_3D[x, 2]])
+        matrixB.append([Points_2D[x, 0]])
+        matrixB.append([Points_2D[x, 1]])
+    # B = A * M
+    # multiplying by A_transpose for both sides
+    AT_A = np.dot(np.mat(matrixA).T, np.mat(matrixA))
+    AT_B = np.dot(np.mat(matrixA).T, np.mat(matrixB)) # A_transpose * B = A_transpose * A * M
+    # M = Inverse(A_transpose * A) * (A_transpose * B)
+    rhs = np.linalg.inv(AT_A)
+    lhs = AT_B
+    M = np.reshape(np.append(np.array( np.dot(rhs, lhs).T),[1]),(3,4)) #Final projection matrix
 
     return M
 
@@ -60,6 +77,6 @@ def compute_camera_center(M):
     # In the visualization you will see that this camera location is clearly
     # incorrect, placing it in the center of the room where it would not see all
     # of the points.
-    Center = np.array([1, 1, 1])
-
+    #Center = np.array([1, 1, 1])
+    Center = np.dot(np.linalg.inv(np.dot(-M[:,0:3].T, -M[:,0:3])), np.dot(-M[:,0:3].T, M[:,3])) #C= -Q^-1 * m4
     return Center
