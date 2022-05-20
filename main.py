@@ -23,15 +23,17 @@ import warnings
 import numpy as np
 import os
 import argparse
-from student import (calculate_projection_matrix, compute_camera_center)
+from student import (calculate_projection_matrix, compute_camera_center,CameraCalibrate)
 from helpers import (evaluate_points, visualize_points, plot3dview)
-
+import cv2
+import os
+import glob
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 def main(args):
-    data_dir = os.path.dirname(__file__) + '../data/'
+    data_dir = os.path.dirname(__file__) + '/data/'
 
     ########## Part (1)
     Points_2D = np.loadtxt(data_dir + 'pts2d-norm-pic_a.txt')
@@ -59,6 +61,17 @@ def main(args):
     Center = compute_camera_center(M)
     print('The estimated location of the camera is:\n {0}\n'.format(Center))
 
+    P,objpoints,imgpoints1,mtx1,gray1,dist1=CameraCalibrate('E:\Spring 2022\CV1\Mini-Project 4\code\mini_project_4\data\s.JPG')
+    P2,objpoints2,imgpoints2,mtx2,gray2,dist2=CameraCalibrate('E:\Spring 2022\CV1\Mini-Project 4\code\mini_project_4\data\ss.JPG')
+    print('The first projection matrix is:\n {0}\n'.format(P))
+    print('The second projection matrix is:\n {0}\n'.format(P2))
+    flags = 0
+    flags |= cv2.CALIB_FIX_INTRINSIC
+
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix,fundamentalMatrix=cv2.stereoCalibrate(objpoints,
+    imgpoints1,imgpoints2,mtx1,dist1,mtx2,dist2,gray1.shape[::-1],flags)
+    print('The essential matrix is: \n')
+    print(essentialMatrix)
     if not args.no_vis:
         plot3dview(Points_3D, Center)
 
